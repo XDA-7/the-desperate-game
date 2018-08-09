@@ -42,6 +42,7 @@ struct State
 struct Nation
 {
     State *states;
+    int stateCount;
     Resource resources[RESOURCE_COUNT];
     Export exports[RESOURCE_COUNT];
     Import imports[RESOURCE_COUNT];
