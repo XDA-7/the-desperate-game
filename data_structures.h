@@ -18,13 +18,19 @@ struct Resource
 struct Export
 {
     Nation *exportingNation;
-    int amount;
+    /*The surplus that occurs when only national consumption is available
+    this number is unaffected by the exported amount*/
+    int surplus;
+    int exported;
 };
 
 struct Import
 {
     Nation *importingNation;
-    int amount;
+    /*The shortage that occurs when only national production is available,
+    this number is unaffected by the imported amount*/
+    int deficit;
+    int imported;
 };
 
 struct Market
@@ -46,6 +52,7 @@ struct Nation
     Resource resources[RESOURCE_COUNT];
     Export exports[RESOURCE_COUNT];
     Import imports[RESOURCE_COUNT];
+    float resourceSatisfaction[RESOURCE_COUNT];
 };
 
 #endif

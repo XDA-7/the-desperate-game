@@ -1,4 +1,4 @@
-OBJS = main.c world.c economy.c
+OBJS = main.c world.c economy.c utils.c
 
 CC = gcc
 
