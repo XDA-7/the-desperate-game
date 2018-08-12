@@ -5,6 +5,7 @@
 typedef struct Resource Resource;
 typedef struct State State;
 typedef struct Nation Nation;
+typedef struct ResourceMarket ResourceMarket;
 typedef struct Market Market;
 typedef struct Export Export;
 typedef struct Import Import;
@@ -33,10 +34,18 @@ struct Import
     int imported;
 };
 
+/*imports and exports are an array of pointers*/
+struct ResourceMarket
+{
+    int exportCount;
+    Export **exports;
+    int importCount;
+    Import **imports;
+};
+
 struct Market
 {
-    Export *exports[RESOURCE_COUNT];
-    Import *imports[RESOURCE_COUNT];
+    ResourceMarket markets[RESOURCE_COUNT];
 };
 
 struct State

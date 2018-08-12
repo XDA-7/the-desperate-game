@@ -36,7 +36,45 @@ void run_national_production(Nation *nation) {
     }
 }
 
-void run_market(Market *market) {}
+void run_market(Market *market) {
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        ResourceMarket rMarket = market->markets[i];
+        int exports = 0;
+        int imports = 0;
+        for (int j = 0; j < rMarket.exportCount; j++) {
+            exports += rMarket.exports[j]->surplus - rMarket.exports[j]->exported;
+        }
+
+        for (int j = 0; j < rMarket.importCount; j++) {
+            imports += rMarket.imports[j]->deficit - rMarket.imports[j]->imported;
+        }
+
+        float importSatisfaction = (float)exports / imports;
+        /*Imports are filled, exports are rationed*/
+        if (importSatisfaction >= 1.0f) {
+            for (int j = 0; j < rMarket.importCount; j++) {
+                rMarket.imports[j]->imported = rMarket.imports[j]->deficit;
+            }
+
+            float exportSatisfaction = (float)imports / exports;
+            for (int j = 0; j < rMarket.exportCount; j++) {
+                int surplus = rMarket.exports[j]->surplus - rMarket.exports[j]->exported;
+                rMarket.exports[j]->exported += (int)(surplus * exportSatisfaction);
+            }
+        }
+        /*Exports are filled, imports are rationed*/
+        else {
+            for (int j = 0; j < rMarket.exportCount; j++) {
+                rMarket.exports[j]->exported = rMarket.exports[j]->surplus;
+            }
+
+            for (int j = 0; j < rMarket.importCount; j++) {
+                int deficit = rMarket.imports[j]->deficit - rMarket.imports[j]->imported;
+                rMarket.imports[j]->imported += (int)(deficit * importSatisfaction);
+            }
+        }
+    }
+}
 
 void calculate_resource_satisfaction(Nation *nation) {
     for (int i = 0; i < RESOURCE_COUNT; i++) {
