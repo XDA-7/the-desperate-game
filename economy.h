@@ -7,6 +7,8 @@ void calculate_resource_consumption(Nation *nation);
 void run_national_production(Nation *nation);
 void run_market(Market *market);
 void calculate_resource_satisfaction(Nation *nation);
-void increase_production(State *state);
+void calculate_economic_growth(Nation *nation);
+void calculate_gdp(Nation *nation);
+void calculate_production(Nation *nation);
 
 #endif

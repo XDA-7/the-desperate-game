@@ -4,7 +4,11 @@
 
 int produce_resource(Nation *nation, State *state, int type);
 
-void calculate_resource_consumption(Nation *nation) {}
+void calculate_resource_consumption(Nation *nation) {
+    /*Calculate consumption by industries*/
+    /*Subtract total from gdp to get population spending*/
+    /*Calculate consumption from population spending*/
+}
 
 void run_national_production(Nation *nation) {
     for (int i = 0; i < RESOURCE_COUNT; i++) {
@@ -89,7 +93,32 @@ void calculate_resource_satisfaction(Nation *nation) {
     }
 }
 
-void increase_production(State *state) {}
+void calculate_economic_growth(Nation *nation) {
+    int growthFactor = nation->stability * ECONOMIC_GROWTH_FROM_STABILITY + nation->hdi * ECONOMIC_GROWTH_FROM_HDI;
+    nation->economicGrowth = growthFactor * ECONOMIC_GROWTH_MAX;
+}
+
+void calculate_gdp(Nation *nation) {
+    int gdp = 0;
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        gdp += nation->resources[i].production;
+    }
+
+    nation->gdp = gdp;
+    nation->gdpPerCapita = gdp / nation->population;
+}
+
+/*Not complete*/
+void calculate_production(Nation *nation) {
+    int gdpGrowth = (int)(nation->gdp * nation->economicGrowth);
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        int productionSurplus = nation->exports[i].surplus - nation->exports[i].exported;
+        if (productionSurplus > 0) {}
+
+        for (int j = 0; j < nation->stateCount; j++) {
+        }
+    }
+}
 
 /*Production of a resource is proportional to the average resource satisfactions of any dependent resources*/
 int produce_resource(Nation *nation, State *state, int type) {

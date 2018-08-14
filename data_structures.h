@@ -52,16 +52,27 @@ struct State
 {
     Resource resources[RESOURCE_COUNT];
     Nation *controllingNation;
+    int population;
 };
 
 struct Nation
 {
     State *states;
     int stateCount;
-    Resource resources[RESOURCE_COUNT];
     Export exports[RESOURCE_COUNT];
     Import imports[RESOURCE_COUNT];
     float resourceSatisfaction[RESOURCE_COUNT];
+    float stability;
+    float hdi;
+    /*Computed from stability and hdi*/
+    float economicGrowth;
+    /*Computed from states*/
+    Resource resources[RESOURCE_COUNT];
+    int population;
+    /*Computed from states production*/
+    int gdp;
+    /*Computed from gdp and population*/
+    int gdpPerCapita;
 };
 
 #endif

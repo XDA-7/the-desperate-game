@@ -6,6 +6,16 @@
 #include "utils.h"
 #include "world.h"
 
+/*process execution order:
+once:
+world
+calculate_population
+calculate_gdp
+
+loop
+economics
+*/
+
 int main() {
     init_nations();
     // printf("%d\n");

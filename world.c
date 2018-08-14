@@ -23,6 +23,7 @@ void init_nation_group(int nationCount, int stateCount) {
         for (int j = 0; j < stateCount; j++) {
             currentNation.states[j].controllingNation = &currentNation;
             init_resources();
+            currentState.population = select_range(STATE_POP_MIN, STATE_POP_MAX);
             gStatesIndex++;
         }
 
