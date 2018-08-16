@@ -3,11 +3,25 @@
 #include "economy.h"
 
 int produce_resource(Nation *nation, State *state, int type);
+void calculate_industry_consumptions(Nation *nation);
+void calculate_industry_consumption(Nation *nation, int consumedType, int consumingType, int cost);
 
+/*Calculates the desired consumption levels for the turn*/
 void calculate_resource_consumption(Nation *nation) {
+    int remainingGdp = nation->gdp;
+    /*Reset consumption*/
+    for (int i = 0; i < nation->stateCount; i++) {
+        for (int j = 0; j < RESOURCE_COUNT; j++) {
+            nation->states[i].resources[j].consumption = 0;
+        }
+    }
+
     /*Calculate consumption by industries*/
+    calculate_industry_consumptions(nation);
     /*Subtract total from gdp to get population spending*/
     /*Calculate consumption from population spending*/
+    for (int i = 0; i < nation->stateCount; i++) {
+    }
 }
 
 void run_national_production(Nation *nation) {
@@ -80,6 +94,23 @@ void run_market(Market *market) {
     }
 }
 
+void calculate_economic_growth(Nation *nation) {
+    int growthFactor = nation->stability * ECONOMIC_GROWTH_FROM_STABILITY + nation->hdi * ECONOMIC_GROWTH_FROM_HDI;
+    nation->economicGrowth = growthFactor * ECONOMIC_GROWTH_MAX;
+}
+
+/*Not complete*/
+void calculate_production_change(Nation *nation) {
+    int gdpGrowth = (int)(nation->gdp * nation->economicGrowth);
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        int productionSurplus = nation->exports[i].surplus - nation->exports[i].exported;
+        if (productionSurplus > 0) {}
+
+        for (int j = 0; j < nation->stateCount; j++) {
+        }
+    }
+}
+
 void calculate_resource_satisfaction(Nation *nation) {
     for (int i = 0; i < RESOURCE_COUNT; i++) {
         int resourceSupply = nation->resources[i].production + nation->imports[i].imported;
@@ -93,11 +124,6 @@ void calculate_resource_satisfaction(Nation *nation) {
     }
 }
 
-void calculate_economic_growth(Nation *nation) {
-    int growthFactor = nation->stability * ECONOMIC_GROWTH_FROM_STABILITY + nation->hdi * ECONOMIC_GROWTH_FROM_HDI;
-    nation->economicGrowth = growthFactor * ECONOMIC_GROWTH_MAX;
-}
-
 void calculate_gdp(Nation *nation) {
     int gdp = 0;
     for (int i = 0; i < RESOURCE_COUNT; i++) {
@@ -106,18 +132,6 @@ void calculate_gdp(Nation *nation) {
 
     nation->gdp = gdp;
     nation->gdpPerCapita = gdp / nation->population;
-}
-
-/*Not complete*/
-void calculate_production(Nation *nation) {
-    int gdpGrowth = (int)(nation->gdp * nation->economicGrowth);
-    for (int i = 0; i < RESOURCE_COUNT; i++) {
-        int productionSurplus = nation->exports[i].surplus - nation->exports[i].exported;
-        if (productionSurplus > 0) {}
-
-        for (int j = 0; j < nation->stateCount; j++) {
-        }
-    }
 }
 
 /*Production of a resource is proportional to the average resource satisfactions of any dependent resources*/
@@ -191,5 +205,52 @@ int produce_resource(Nation *nation, State *state, int type) {
             return (int)(production * nation->resourceSatisfaction[MARKETING]);
         default:
             return production;
+    }
+}
+
+void calculate_industry_consumptions(Nation *nation) {
+    calculate_industry_consumption(nation, CEREALS, MEAT, CEREALS_MEAT);
+    calculate_industry_consumption(nation, CEREALS, DAIRY, CEREALS_DAIRY);
+    calculate_industry_consumption(nation, MACHINERY, FOSSIL_FUELS, MACHINERY_FOSSIL_FUELS);
+    calculate_industry_consumption(nation, MACHINERY, WOOD_AND_PAPER, MACHINERY_WOOD_AND_PAPER);
+    calculate_industry_consumption(nation, ELECTRICITY, WOOD_AND_PAPER, ELECTRICITY_WOOD_AND_PAPER);
+    calculate_industry_consumption(nation, MACHINERY, MINERALS, MACHINERY_MINERALS);
+    calculate_industry_consumption(nation, ELECTRICITY, IRON_AND_STEEL, ELECTRICITY_IRON_AND_STEEL);
+    calculate_industry_consumption(nation, MACHINERY, PRECIOUS_STONES, MACHINERY_PRECIOUS_STONES);
+    calculate_industry_consumption(nation, ELECTRICITY, FABRICS, ELECTRICITY_FABRICS);
+    calculate_industry_consumption(nation, CHEMICALS, PLASTICS, CHEMICALS_PLASTICS);
+    calculate_industry_consumption(nation, ELECTRICITY, PLASTICS, ELECTRICITY_PLASTICS);
+    calculate_industry_consumption(nation, ELECTRICITY, CHEMICALS, ELECTRICITY_CHEMICALS);
+
+    calculate_industry_consumption(nation, CHEMICALS, PHARMACEUTICALS, CHEMICALS_PHARMACEUTICALS);
+    calculate_industry_consumption(nation, ELECTRICITY, PHARMACEUTICALS, ELECTRICITY_PHARMACEUTICALS);
+
+    calculate_industry_consumption(nation, IRON_AND_STEEL, APPLIANCES, IRON_AND_STEEL_APPLIANCES);
+    calculate_industry_consumption(nation, ELECTRICITY, APPLIANCES, ELECTRICITY_APPLIANCES);
+
+    calculate_industry_consumption(nation, IRON_AND_STEEL, VEHICLES, IRON_AND_STEEL_VEHICLES);
+    calculate_industry_consumption(nation, PLASTICS, VEHICLES, PLASTICS_VEHICLES);
+    calculate_industry_consumption(nation, ELECTRICITY, VEHICLES, ELECTRICITY_VEHICLES);
+
+    calculate_industry_consumption(nation, IRON_AND_STEEL, MACHINERY, IRON_AND_STEEL_MACHINERY);
+    calculate_industry_consumption(nation, ELECTRICITY, MACHINERY, ELECTRICITY_MACHINERY);
+
+    calculate_industry_consumption(nation, PLASTICS, COMMODITIES, PLASTICS_COMMODITIES);
+    calculate_industry_consumption(nation, CHEMICALS, COMMODITIES, CHEMICALS_COMMODITIES);
+    calculate_industry_consumption(nation, FABRICS, COMMODITIES, FABRICS_COMMODITIES);
+    calculate_industry_consumption(nation, ELECTRICITY, COMMODITIES, ELECTRICITY_COMMODITIES);
+
+    calculate_industry_consumption(nation, IRON_AND_STEEL, CONSTRUCTION, IRON_AND_STEEL_CONSTRUCTION);
+    calculate_industry_consumption(nation, WOOD_AND_PAPER, CONSTRUCTION, WOOD_AND_PAPER_CONSTRUCTION);
+    calculate_industry_consumption(nation, MACHINERY, CONSTRUCTION, MACHINERY_CONSTRUCTION);
+
+    calculate_industry_consumption(nation, PHARMACEUTICALS, HEALTHCARE, PHARMACEUTICALS_HEALTHCARE);
+    calculate_industry_consumption(nation, MARKETING, RETAIL, MARKETING_RETAIL);
+}
+
+void calculate_industry_consumption(Nation *nation, int consumedType, int consumingType, int cost) {
+    float costRatio = cost / UNITS_OUTPUT_PER_INPUT;
+    for (int i = 0; i < nation->stateCount; i++) {
+        nation->resources[consumedType].consumption += (int)(nation->resources[consumingType].production * costRatio);
     }
 }
