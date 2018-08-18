@@ -9,8 +9,6 @@
 /*process execution order:
 once:
 world
-calculate_population
-calculate_gdp
 
 loop
 economics

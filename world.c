@@ -1,6 +1,8 @@
 #include "stdlib.h"
-#include "world.h"
+#include "demographics.h"
+#include "economy.h"
 #include "utils.h"
+#include "world.h"
 #define currentNation gNations[gNationsIndex]
 #define currentState gStates[gStatesIndex]
 
@@ -33,25 +35,32 @@ void init_nation_group(int nationCount, int stateCount) {
             currentNation.imports[j].importingNation = &currentNation;
         }
 
+        calculate_population(&currentNation);
         gNationsIndex++;
     }
 }
 
 void init_resources() {
+    /*Cereal*/
+    enable_resource_production(&currentState, CEREALS);
+    currentState.resources[CEREALS].production +=
+        (float)select_range(CEREAL_START_MIN, CEREAL_START_MAX);
+    currentNation.gdp += currentState.resources[CEREALS].production;
+
     /*Agriculture*/
     for (int i = 0; i < AGRICULTURE_PER_STATE; i++) {
         int agricultureSelection = select_value(
-            6,
-            (int[]) { CEREALS, VEGETABLES_AND_FRUIT, MEAT, DAIRY, TOBACCO, DRUGS }
+            5,
+            (int[]) { VEGETABLES_AND_FRUIT, MEAT, DAIRY, TOBACCO, DRUGS }
         );
-        currentState.resources[agricultureSelection].production +=
-            select_range(AGRICULTRE_START_MIN, AGRICULTURE_START_MAX);
+        enable_resource_production(&currentState, agricultureSelection);
     }
 
+    /*Electricity*/
+    enable_resource_production(&currentState, ELECTRICITY);
     /*Fossil fuels*/
     if (FOSSIL_FUEL_CHECK) {
-        currentState.resources[FOSSIL_FUELS].production +=
-            select_range(FOSSIL_FUEL_START_MIN, FOSSIL_FUEL_START_MAX);
+        enable_resource_production(&currentState, FOSSIL_FUELS);
     }
 
     /*Raw materials*/
@@ -60,13 +69,37 @@ void init_resources() {
             3,
             (int[]) { WOOD_AND_PAPER, MINERALS, IRON_AND_STEEL }
         );
-        currentState.resources[rawMaterialSelection].production +=
-            select_range(RAW_MATERIAL_START_MIN, RAW_MATERIAL_START_MAX);
+        enable_resource_production(&currentState, rawMaterialSelection);
     }
 
     /*Precious stones*/
     if (PRECIOUS_STONES_CHECK) {
-        currentState.resources[PRECIOUS_STONES].production +=
-            select_range(PRECIOUS_STONES_MIN, PRECIOUS_STONES_MAX);
+        enable_resource_production(&currentState, PRECIOUS_STONES);
     }
+
+    /*Industry*/
+    for (int i = 0; i < INDUSTRY_PER_STATE; i++) {
+        int industrySelection = select_value(
+            4,
+            (int[]) { FABRICS, PLASTICS, CHEMICALS, PHARMACEUTICALS }
+        );
+        enable_resource_production(&currentState, industrySelection);
+    }
+
+    /*Finished goods*/
+    for (int i = 0; i < FINISHED_GOODS_PER_STATE; i++) {
+        int finishedGoodsSelection = select_value(
+            4,
+            (int[]) { APPLIANCES, MACHINERY, VEHICLES, COMMODITIES }
+        );
+        enable_resource_production(&currentState, finishedGoodsSelection);
+    }
+
+    /*Services*/
+    enable_resource_production(&currentState, CONSTRUCTION);
+    enable_resource_production(&currentState, ENGINEERING);
+    enable_resource_production(&currentState, HEALTHCARE);
+    enable_resource_production(&currentState, RETAIL);
+    enable_resource_production(&currentState, LEGAL_SERVICES);
+    enable_resource_production(&currentState, MARKETING);
 }

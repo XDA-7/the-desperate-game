@@ -12,8 +12,8 @@ typedef struct Import Import;
 
 struct Resource
 {
-    int production;
-    int consumption;
+    float production;
+    float consumption;
 };
 
 struct Export
@@ -21,8 +21,8 @@ struct Export
     Nation *exportingNation;
     /*The surplus that occurs when only national consumption is available
     this number is unaffected by the exported amount*/
-    int surplus;
-    int exported;
+    float surplus;
+    float exported;
 };
 
 struct Import
@@ -30,8 +30,8 @@ struct Import
     Nation *importingNation;
     /*The shortage that occurs when only national production is available,
     this number is unaffected by the imported amount*/
-    int deficit;
-    int imported;
+    float deficit;
+    float imported;
 };
 
 /*imports and exports are an array of pointers*/
@@ -51,8 +51,10 @@ struct Market
 struct State
 {
     Resource resources[RESOURCE_COUNT];
+    /*bitfield*/
+    int producedResources;
     Nation *controllingNation;
-    int population;
+    float population;
 };
 
 struct Nation
@@ -70,11 +72,11 @@ struct Nation
     float economicGrowth;
     /*Computed from states*/
     Resource resources[RESOURCE_COUNT];
-    int population;
+    float population;
     /*Computed from states production*/
-    int gdp;
+    float gdp;
     /*Computed from gdp and population*/
-    int gdpPerCapita;
+    float gdpPerCapita;
 };
 
 #endif

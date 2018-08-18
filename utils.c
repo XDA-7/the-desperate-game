@@ -17,3 +17,13 @@ int select_range(int min, int max) {
     int variation = rand() % (max - min);
     return min + variation;
 }
+
+int is_resource_produced(State *state, int type) {
+    int typeBit = 1 << type;
+    return state->producedResources & typeBit;
+}
+
+void enable_resource_production(State *state, int type) {
+    int typeBit = 1 << type;
+    state->producedResources = state->producedResources | typeBit;
+}
