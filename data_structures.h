@@ -63,9 +63,10 @@ struct Nation
     int stateCount;
     Export exports[RESOURCE_COUNT];
     Import imports[RESOURCE_COUNT];
-    /*Resource satisfaction is maxed at 1.0, resource supply denotes the supply/demand ratio*/
+    /*Ratio of produced to consumed of the resource (maxed at 1.0)*/
     float resourceSatisfaction[RESOURCE_COUNT];
-    float resourceSupply[RESOURCE_COUNT];
+    /*How much consumption remains unfulfilled*/
+    float resourceShortage[RESOURCE_COUNT];
     float stability;
     float hdi;
     /*Computed from stability and hdi*/
@@ -73,7 +74,7 @@ struct Nation
     /*Computed from states*/
     Resource resources[RESOURCE_COUNT];
     float population;
-    /*Computed from states production*/
+    /*Computed from states gdp*/
     float gdp;
     /*Computed from gdp and population*/
     float gdpPerCapita;

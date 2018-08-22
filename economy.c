@@ -1,6 +1,8 @@
+#include "stdlib.h"
 #include "constants.h"
 #include "data_structures.h"
 #include "economy.h"
+#include "utils.h"
 
 float produce_resource(Nation *nation, State *state, int type);
 /*All consumption calculations are applied on the states*/
@@ -9,6 +11,9 @@ float calculate_industry_consumption(Nation *nation, int consumedType, int consu
 void calculate_population_consumption(Nation *nation, float spending);
 void calculate_pop_class_consumption(Nation *nation, float spending, ClassSpendingProfile spendingProfile);
 void calculate_pop_class_category_consumption(Nation *nation, float spending, int categoryCount, const int *categories);
+void calculate_production_priorities(Nation *nation, float *resourcePriorities);
+int nation_can_produce_resource(Nation *nation, int resourceType);
+int get_resource_producing_states(Nation *nation, int *boolArray, int resourceType);
 
 /*Calculates the desired consumption levels for the turn*/
 void calculate_resource_consumption(Nation *nation) {
@@ -20,8 +25,10 @@ void calculate_resource_consumption(Nation *nation) {
         }
     }
 
-    /*Calculate consumption by industries
-    Subtract total from gdp to get population spending*/
+    /* 
+     * Calculate consumption by industries
+     * Subtract total from gdp to get population spending
+     */
     remainingGdp -= calculate_industry_consumptions(nation);
     /*Calculate consumption from population spending*/
     calculate_population_consumption(nation, remainingGdp);
@@ -110,8 +117,30 @@ void calculate_economic_growth(Nation *nation) {
     nation->economicGrowth = growthFactor * ECONOMIC_GROWTH_MAX;
 }
 
-/*TODO*/
+/*
+ * Growth is divided according to deficits in each sector for the nation as a whole.
+ * The growth is then divided among all states that can produce the resource.
+ */
 void calculate_production_change(Nation *nation) {
+    float gdpIncrease = nation->economicGrowth * nation->gdp;
+    float resourcePriorities[RESOURCE_COUNT];
+    calculate_production_priorities(nation, resourcePriorities);
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        if (resourcePriorities[i] == 0.0f) {
+            continue;
+        }
+
+        int *isProducingState = malloc(nation->stateCount * sizeof(int));
+        int producingStateCount = get_resource_producing_states(nation, isProducingState, i);
+        float productionIncreasePerState = (gdpIncrease * resourcePriorities[i]) / producingStateCount;
+        for (int j = 0; j < nation->stateCount; j++) {
+            if (isProducingState[j]) {
+                nation->states[j].resources[i].production += productionIncreasePerState;
+            }
+        }
+
+        free(isProducingState);
+    }
 }
 
 void calculate_resource_satisfaction(Nation *nation) {
@@ -120,9 +149,11 @@ void calculate_resource_satisfaction(Nation *nation) {
         float resourceDemand = nation->resources[i].consumption;
         if (resourceSupply < resourceDemand) {
             nation->resourceSatisfaction[i] = resourceSupply / resourceDemand;
+            nation->resourceShortage[i] = resourceDemand - resourceSupply;
         }
         else {
             nation->resourceSatisfaction[i] = 1.0f;
+            nation->resourceShortage[i] = 0.0f;
         }
     }
 }
@@ -305,4 +336,50 @@ void calculate_pop_class_category_consumption(Nation *nation, float spending, in
             nation->states[i].resources[categories[j]].consumption += stateConsumption;
         }
     }
+}
+
+/*
+ * Priorities are based on the gross good shortage rather than the ratio of supply to demand
+ * This is to prevent large gdp growth from oversupplying smaller resource sectors
+ */
+void calculate_production_priorities(Nation *nation, float *resourcePriorities) {
+    float totalShortages = 0.0f;
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        if (nation_can_produce_resource(nation, i)) {
+            resourcePriorities[i] = nation->resourceShortage[i];
+            totalShortages += nation->resourceShortage[i];
+        }
+    }
+
+
+    /*Normalisation*/
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        resourcePriorities[i] /= totalShortages;
+    }
+}
+
+int nation_can_produce_resource(Nation *nation, int resourceType) {
+    for (int i = 0; i < nation->stateCount; i++) {
+        if (is_resource_produced(&nation->states[i], resourceType)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/*Returns the number of states producing the resource and modifies the array to identify which states these are*/
+int get_resource_producing_states(Nation *nation, int *boolArray, int resourceType) {
+    int count = 0;
+    for (int i = 0; i < nation->stateCount; i++) {
+        if (is_resource_produced(&nation->states[i], resourceType)) {
+            count++;
+            boolArray[i] = 1;
+        }
+        else {
+            boolArray[i] = 0;
+        }
+    }
+
+    return count;
 }
