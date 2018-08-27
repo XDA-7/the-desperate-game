@@ -30,8 +30,17 @@ void calculate_resource_consumption(Nation *nation) {
      * Subtract total from gdp to get population spending
      */
     remainingGdp -= calculate_industry_consumptions(nation);
+    // printf("Remaining GDP: %f\n", remainingGdp);
+    // for (int i = 0; i < RESOURCE_COUNT; i++) {
+    //     printf("Consumption %d: %f\n", i, nation->states[0].resources[i].consumption);
+    // }
+
     /*Calculate consumption from population spending*/
     calculate_population_consumption(nation, remainingGdp);
+    // for (int i = 0; i < RESOURCE_COUNT; i++) {
+    //     printf("Consumption %d: %f\n", i, nation->states[0].resources[i].consumption);
+    // }
+    // printf("\n");
     /*Calculate national consumption from states*/
     for (int i = 0; i < RESOURCE_COUNT; i++) {
         nation->resources[i].consumption = 0;
@@ -51,6 +60,8 @@ void run_national_production(Nation *nation) {
             float stateProduction = produce_resource(nation, &nation->states[j], i);
             float stateConsumption = nation->states[j].resources[i].consumption;
             production += stateProduction;
+            // printf("Base state production: %f\n", nation->states[j].resources[i].production);
+            // printf("State production: %f\n", stateProduction);
             consumption += stateConsumption;
             resourceBalance += stateProduction - stateConsumption;
         }
@@ -117,6 +128,22 @@ void calculate_economic_growth(Nation *nation) {
     nation->economicGrowth = growthFactor * ECONOMIC_GROWTH_MAX;
 }
 
+void calculate_resource_satisfaction(Nation *nation) {
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        float resourceSupply = nation->resources[i].production + nation->imports[i].imported;
+        float resourceDemand = nation->resources[i].consumption;
+        // printf("Resource %d:\nSupply: %f\nDemand: %f\n", i, resourceSupply, resourceDemand);
+        if (resourceSupply < resourceDemand) {
+            nation->resourceSatisfaction[i] = resourceSupply / resourceDemand;
+            nation->resourceShortage[i] = resourceDemand - resourceSupply;
+        }
+        else {
+            nation->resourceSatisfaction[i] = 1.0f;
+            nation->resourceShortage[i] = 0.0f;
+        }
+    }
+}
+
 /*
  * Growth is divided according to deficits in each sector for the nation as a whole.
  * The growth is then divided among all states that can produce the resource.
@@ -133,28 +160,19 @@ void calculate_production_change(Nation *nation) {
         int *isProducingState = malloc(nation->stateCount * sizeof(int));
         int producingStateCount = get_resource_producing_states(nation, isProducingState, i);
         float productionIncreasePerState = (gdpIncrease * resourcePriorities[i]) / producingStateCount;
+        // printf("Production increase per state for %d: %f\n", i, productionIncreasePerState);
+        // printf("Producing state count: %d\n", producingStateCount);
+        // printf("Resource priority: %f\n", resourcePriorities[i]);
         for (int j = 0; j < nation->stateCount; j++) {
             if (isProducingState[j]) {
+                //printf("Production before: %f\n", nation->states[j].resources[i].production);
                 nation->states[j].resources[i].production += productionIncreasePerState;
+                // printf("Production after: %f\n", nation->states[j].resources[i].production);
             }
         }
 
+        // printf("End resource increase %d\n\n", i);
         free(isProducingState);
-    }
-}
-
-void calculate_resource_satisfaction(Nation *nation) {
-    for (int i = 0; i < RESOURCE_COUNT; i++) {
-        float resourceSupply = nation->resources[i].production + nation->imports[i].imported;
-        float resourceDemand = nation->resources[i].consumption;
-        if (resourceSupply < resourceDemand) {
-            nation->resourceSatisfaction[i] = resourceSupply / resourceDemand;
-            nation->resourceShortage[i] = resourceDemand - resourceSupply;
-        }
-        else {
-            nation->resourceSatisfaction[i] = 1.0f;
-            nation->resourceShortage[i] = 0.0f;
-        }
     }
 }
 
@@ -162,7 +180,9 @@ void calculate_gdp(Nation *nation) {
     float gdp = 0;
     for (int i = 0; i < RESOURCE_COUNT; i++) {
         gdp += nation->resources[i].production;
+        // printf("%f\n", nation->resources[i].production);
     }
+    // printf("\n");
 
     nation->gdp = gdp;
     nation->gdpPerCapita = gdp / nation->population;
@@ -287,10 +307,13 @@ float calculate_industry_consumptions(Nation *nation) {
 }
 
 float calculate_industry_consumption(Nation *nation, int consumedType, int consumingType, int cost) {
-    float costRatio = cost / UNITS_OUTPUT_PER_INPUT;
+    float costRatio = cost / (float)UNITS_OUTPUT_PER_INPUT;
+    // printf("Cost ratio: %f\n", costRatio);
     float consumption = 0;
     for (int i = 0; i < nation->stateCount; i++) {
         float stateConsumption = nation->states[i].resources[consumingType].production * costRatio;
+        // printf("Production of consuming type: %f\n", nation->states[i].resources[consumingType].production);
+        // printf("State consumption: %f\n", stateConsumption);
         nation->states[i].resources[consumedType].consumption += stateConsumption;
         consumption += stateConsumption;
     }
@@ -329,7 +352,9 @@ void calculate_pop_class_consumption(Nation *nation, float spending, ClassSpendi
 }
 
 void calculate_pop_class_category_consumption(Nation *nation, float spending, int categoryCount, const int *categories) {
+    // printf("Population: %f\nSpending: %f\nCategory count: %d\n", nation->population, spending, categoryCount);
     float amountPerPersonPerCategory = (spending / categoryCount) / nation->population;
+    // printf("AmountPerPersonPerCategory: %f\n", amountPerPersonPerCategory);
     for (int i = 0; i < nation->stateCount; i++) {
         float stateConsumption = nation->states[i].population * amountPerPersonPerCategory;
         for (int j = 0; j < categoryCount; j++) {
@@ -344,17 +369,37 @@ void calculate_pop_class_category_consumption(Nation *nation, float spending, in
  */
 void calculate_production_priorities(Nation *nation, float *resourcePriorities) {
     float totalShortages = 0.0f;
+    int resourceTypesProduced = 0;
     for (int i = 0; i < RESOURCE_COUNT; i++) {
+        resourcePriorities[i] = 0.0f;
         if (nation_can_produce_resource(nation, i)) {
+            resourceTypesProduced++;
+            // printf("Nation can produce resource %d\n", i);
             resourcePriorities[i] = nation->resourceShortage[i];
             totalShortages += nation->resourceShortage[i];
         }
     }
 
-
-    /*Normalisation*/
-    for (int i = 0; i < RESOURCE_COUNT; i++) {
-        resourcePriorities[i] /= totalShortages;
+    // printf("TotalShortages: %f\n", totalShortages);
+    /*TODO: Production should be increased for resources where there is export demand first*/
+    if (totalShortages == 0) {
+        float evenPriorities = 1.0 / resourceTypesProduced;
+        // printf("Even priority: %f\n", evenPriorities);
+        for (int i = 0; i < RESOURCE_COUNT; i++) {
+            if (nation_can_produce_resource(nation, i)) {
+                resourcePriorities[i] = evenPriorities;
+            }
+        }
+    }
+    else {
+        /*Normalisation*/
+        for (int i = 0; i < RESOURCE_COUNT; i++) {
+            // printf("Resource: %d\n", i);
+            // printf("Resource priority: %f\n", resourcePriorities[i]);
+            resourcePriorities[i] /= totalShortages;
+            // printf("Normalised resource priority: %f\n", resourcePriorities[i]);
+            // printf("\n");
+        }
     }
 }
 

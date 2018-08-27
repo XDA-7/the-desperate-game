@@ -16,7 +16,6 @@ economics
 
 int main() {
     init_nations();
-    // printf("%d\n");
 
     return 0;
 }
