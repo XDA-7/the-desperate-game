@@ -2,7 +2,7 @@
 #include "constants.h"
 #include "data_structures.h"
 #include "economy.h"
-#include "utils.h"
+#include "queries.h"
 
 float produce_resource(Nation *nation, State *state, int type);
 /*All consumption calculations are applied on the states*/

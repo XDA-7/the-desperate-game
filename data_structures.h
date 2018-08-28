@@ -4,6 +4,9 @@
 
 typedef struct Resource Resource;
 typedef struct State State;
+typedef struct Military Military;
+typedef struct GovernmentSpending GovernmentSpending;
+typedef struct Government Government;
 typedef struct Nation Nation;
 typedef struct ResourceMarket ResourceMarket;
 typedef struct Market Market;
@@ -54,7 +57,37 @@ struct State
     /*bitfield*/
     int producedResources;
     Nation *controllingNation;
+    Nation *coreNation;
     float population;
+};
+
+struct Military
+{
+    int infantry;
+    int artillery;
+    int armoured;
+    int airFighters;
+    int airBombers;
+    /*Surface to air missiles*/
+    int sams;
+};
+
+struct GovernmentSpending
+{
+    float base;
+    float modifier;
+};
+
+struct Government
+{
+    int governmentType;
+    Military military;
+    GovernmentSpending spending[GOVERNMENT_SPENDING_AREAS];
+    float taxRate;
+    float revenue;
+    float totalSpending;
+    float treasury;
+    float foreignRelations[NATION_COUNT];
 };
 
 struct Nation
@@ -63,12 +96,15 @@ struct Nation
     int stateCount;
     Export exports[RESOURCE_COUNT];
     Import imports[RESOURCE_COUNT];
+    Government government;
     /*Ratio of produced to consumed of the resource (maxed at 1.0)*/
     float resourceSatisfaction[RESOURCE_COUNT];
     /*How much consumption remains unfulfilled*/
     float resourceShortage[RESOURCE_COUNT];
     float stability;
     float hdi;
+    float happiness;
+    float corruption;
     /*Computed from stability and hdi*/
     float economicGrowth;
     /*Computed from states*/

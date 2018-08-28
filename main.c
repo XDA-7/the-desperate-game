@@ -12,6 +12,7 @@ world
 
 loop
 economics
+government
 */
 
 int main() {

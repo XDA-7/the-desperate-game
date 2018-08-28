@@ -1,7 +1,7 @@
 #include "stdlib.h"
+#include "constants.h"
 #include "demographics.h"
-#include "economy.h"
-#include "utils.h"
+#include "queries.h"
 #include "world.h"
 #define currentNation gNations[gNationsIndex]
 #define currentState gStates[gStatesIndex]
@@ -24,6 +24,7 @@ void init_nation_group(int nationCount, int stateCount) {
         currentNation.stateCount = stateCount;
         for (int j = 0; j < stateCount; j++) {
             currentNation.states[j].controllingNation = &currentNation;
+            currentNation.states[j].coreNation = &currentNation;
             init_resources();
             currentState.population = select_range(STATE_POP_MIN, STATE_POP_MAX);
             gStatesIndex++;

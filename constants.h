@@ -1,6 +1,7 @@
 
 #ifndef CONSTANTS
 #define CONSTANTS
+#include "utils.h"
 
 /*Resource types*/
 #define RESOURCE_COUNT 26
@@ -84,6 +85,34 @@
 #define MACHINERY_CONSTRUCTION 5
 #define PHARMACEUTICALS_HEALTHCARE 10
 #define MARKETING_RETAIL 5
+
+/*World generation*/
+#define LARGE_NATION_SIZE 5
+#define LARGE_NATION_COUNT 5
+
+#define MEDIUM_NATION_SIZE 3
+#define MEDIUM_NATION_COUNT 60
+
+#define SMALL_NATION_SIZE 1
+#define SMALL_NATION_COUNT 120
+
+#define NATION_COUNT LARGE_NATION_COUNT + MEDIUM_NATION_COUNT + SMALL_NATION_COUNT
+#define STATE_COUNT LARGE_NATION_COUNT * LARGE_NATION_SIZE + MEDIUM_NATION_COUNT * MEDIUM_NATION_SIZE + SMALL_NATION_COUNT * SMALL_NATION_SIZE
+
+#define AGRICULTURE_PER_STATE 2
+#define CEREAL_START_MIN 50
+#define CEREAL_START_MAX 75
+
+#define FOSSIL_FUEL_CHECK (roll_check(19, 20))
+
+#define RAW_MATERIALS_PER_STATE 1
+#define PRECIOUS_STONES_CHECK (roll_check(99, 100))
+
+#define INDUSTRY_PER_STATE 2
+#define FINISHED_GOODS_PER_STATE 2
+
+#define STATE_POP_MIN 1
+#define STATE_POP_MAX 10
 
 /*Scaling values*/
 #define POPULATION_SCALING 1000
@@ -169,5 +198,21 @@ typedef struct GovernmentTraits {
     int coupDoesntChangeGovernmentType:1;
 } GovernmentTraits;
 const GovernmentTraits GOVERNMENT_TRAITS[GOVERNMENT_TYPES];
+
+/*Government spending*/
+#define GOVERNMENT_SPENDING_AREAS 7
+#define INFRASTRUCTURE 0
+#define MILITARY 1
+#define INTELLIGENCE 2
+#define ADMINISTRATION 3
+#define PROPAGANDA 4
+#define HEALTHCARE 5
+#define EDUCATION 6
+
+#define MAX_OVERSPENDING 1.5
+#define MIN_UNDERSPENDING 0.5
+/*Increase in base spending caused by 100% overspending*/
+#define SPENDING_STIMULATION 0.3
+#define DEBT_INTEREST 0.05
 
 #endif
