@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "data_structures.h"
 #include "economy.h"
+#include "government.h"
 #include "utils.h"
 #include "world.h"
 

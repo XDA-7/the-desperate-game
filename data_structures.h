@@ -76,6 +76,7 @@ struct GovernmentSpending
 {
     float base;
     float modifier;
+    float current;
 };
 
 struct Government
