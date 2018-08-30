@@ -32,10 +32,41 @@ void calculate_hdi(Nation *nation) {
  *government type
  *GDP per capita
  *war*/
-void calculate_happiness(Nation *nation) {}
+void calculate_happiness(Nation *nation) {
+    float gainFromHdi = nation->hdi * MAX_HAPPINESS_FROM_HDI;
+    float gainFromResources = MAX_HAPPINESS_FROM_RESOURCES;
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+        float resourceLoss =
+            (1.0f - nation->resourceSatisfaction[i]) *
+            HAPPINESS_LOSS_PER_MISSING_RESOURCE;
+        gainFromResources -= resourceLoss;
+        if (gainFromResources < MIN_HAPPINESS_FROM_RESOURCES) {
+            gainFromResources = MIN_HAPPINESS_FROM_RESOURCES;
+            break;
+        }
+    }
+
+    float gainFromGovernment =
+        MAX_HAPPINESS_FROM_GOVERNMENT_TYPE *
+        GOVERNMENT_STATS[nation->government.governmentType].happinessModifier;
+    float gainFromGdp = (nation->gdpPerCapita / MAX_HAPPINESS_INCOME_PER_CAPITA) *
+        MAX_HAPPINESS_FROM_INCOME;
+    /*TODO: War loss*/
+    float totalHappiness = gainFromHdi + gainFromResources + gainFromGovernment + gainFromGdp;
+    nation->happiness = totalHappiness > 1.0f ? 1.0f : totalHappiness;
+}
 
 /*Corruption is a product of government spending and government type*/
-void calculate_corruption(Nation *nation) {}
+void calculate_corruption(Nation *nation) {
+    float corruptionFromGovernment = MAX_CORRUPTION_FROM_GOVERNMENT *
+        GOVERNMENT_STATS[nation->government.governmentType].corruptionModifier;
+    float governmentPerCapita = nation->government.spending[ADMINISTRATION].current /
+        nation->population;
+    float lossFromSpending = (governmentPerCapita / MAX_EFFECTIVE_GOVERNMENT_PER_CAPITA) *
+        MAX_CORRUPTION_LOSS_FROM_SPENDING;
+    float totalCorruption = corruptionFromGovernment - lossFromSpending;
+    nation->corruption = totalCorruption < 0.0f ? 0.0f : totalCorruption;
+}
 
 /*Stability is a product of
  *base stability
